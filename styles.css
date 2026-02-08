@@ -1,0 +1,198 @@
+.blip-modal {
+	padding: 20px;
+}
+
+.blip-title {
+	margin: 0 0 15px 0;
+	text-align: center;
+}
+
+.blip-textarea {
+	width: 100%;
+	min-width: 350px;
+	min-height: 120px;
+	padding: 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 5px;
+	background-color: var(--background-primary);
+	color: var(--text-normal);
+	font-family: inherit;
+	font-size: 14pt;
+	resize: vertical;
+	margin-bottom: 15px;
+}
+
+.blip-textarea:focus {
+	outline: none;
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.blip-textarea::placeholder {
+	color: var(--text-muted);
+}
+
+.blip-button-container {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+.blip-button {
+	padding: 8px 20px;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.15s ease;
+}
+
+.blip-cancel {
+	background-color: var(--background-secondary);
+	color: var(--text-normal);
+	border: 1px solid var(--background-modifier-border);
+}
+
+.blip-cancel:hover {
+	background-color: var(--background-modifier-hover);
+}
+
+.blip-save {
+	background-color: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border: none;
+}
+
+.blip-save:hover {
+	background-color: var(--interactive-accent-hover);
+}
+
+/* Manage Blips Modal */
+.blip-manage-modal {
+	max-width: 500px;
+}
+
+.blips-list-container {
+	max-height: 400px;
+	overflow-y: auto;
+	margin-bottom: 15px;
+}
+
+.blip-empty-message {
+	color: var(--text-muted);
+	text-align: center;
+	padding: 20px;
+}
+
+.blip-item {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	padding: 10px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 5px;
+	margin-bottom: 8px;
+	background-color: var(--background-secondary);
+}
+
+.blip-item-content {
+	flex: 1;
+	margin-right: 10px;
+	overflow: hidden;
+}
+
+.blip-item-date {
+	font-size: 10pt;
+	color: var(--text-muted);
+	margin-top: 4px;
+}
+
+.blip-item-text {
+	font-size: 11pt;
+	color: var(--text-normal);
+	word-wrap: break-word;
+}
+
+.blip-delete-button {
+	flex-shrink: 0;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: none;
+	border-radius: 4px;
+	background-color: transparent;
+	color: var(--text-muted);
+	font-size: 18px;
+	font-weight: bold;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.15s ease;
+}
+
+.blip-delete-button:hover {
+	background-color: var(--background-modifier-error);
+	color: var(--text-on-accent);
+}
+
+.blip-instructions {
+	font-size: 11pt;
+	color: var(--text-muted);
+	text-align: center;
+	margin: 0 0 15px 0;
+}
+
+.blip-drag-handle {
+	flex-shrink: 0;
+	width: 20px;
+	color: var(--text-muted);
+	cursor: grab;
+	font-size: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 8px;
+	user-select: none;
+}
+
+.blip-drag-handle:active {
+	cursor: grabbing;
+}
+
+.blip-item.blip-dragging {
+	opacity: 0.5;
+	background-color: var(--background-modifier-hover);
+}
+
+.blip-item.blip-drag-over {
+	border: 2px dashed var(--interactive-accent);
+	background-color: var(--background-modifier-hover);
+}
+
+/* Random Blip Modal */
+.blip-random-modal {
+	max-width: 450px;
+}
+
+.random-blip-display {
+	padding: 20px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 5px;
+	background-color: var(--background-secondary);
+	margin-bottom: 15px;
+	min-height: 80px;
+}
+
+.random-blip-content {
+	font-size: 14pt;
+	color: var(--text-normal);
+	margin-bottom: 10px;
+	line-height: 1.4;
+}
+
+.random-blip-date {
+	font-size: 10pt;
+	color: var(--text-muted);
+	text-align: right;
+}

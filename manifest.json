@@ -1,0 +1,10 @@
+{
+	"id": "blip-capture",
+	"name": "Blip Capture",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "Quickly capture short notes (Blips) via a hotkey or ribbon button and save them to a central file.",
+	"author": "Your Name",
+	"authorUrl": "",
+	"isDesktopOnly": false
+}

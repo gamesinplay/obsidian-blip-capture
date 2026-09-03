@@ -1,4 +1,4 @@
-# Blip Capture Plugin for Obsidian
+# Blip Capture 1.1.0 Plugin for Obsidian
 
 Quickly capture short notes ("Blips") and save them to a central `Blips.md` file in your vault's root directory. Perfect for capturing fleeting thoughts, ideas, and quick notes without interrupting your workflow.
 

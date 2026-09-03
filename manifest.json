@@ -1,7 +1,7 @@
 {
 	"id": "blip-capture",
-	"name": "Blip Capture",
-	"version": "1.0.0",
+	"name": "Blip Capture 1.1.0",
+	"version": "1.1.0",
 	"minAppVersion": "0.15.0",
 	"description": "Quickly capture short notes (Blips) via hotkey or ribbon button and save them to a central file.",
 	"author": "gamesinplay",

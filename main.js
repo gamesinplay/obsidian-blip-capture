@@ -29,34 +29,40 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian = require("obsidian");
 var BLIPS_FILE = "Blips.md";
+function padTwo(value) {
+  return value < 10 ? `0${value}` : `${value}`;
+}
+function formatBlipLine(blip) {
+  return `- **${blip.content}** ${blip.date}`;
+}
 var BlipCapturePlugin = class extends import_obsidian.Plugin {
-  async onload() {
-    this.addRibbonIcon("zap", "Capture Blip", () => {
+  onload() {
+    this.addRibbonIcon("zap", "Capture blip", () => {
       new BlipModal(this.app, this).open();
     });
-    this.addRibbonIcon("list", "Manage Blips", () => {
+    this.addRibbonIcon("list", "Manage blips", () => {
       new ManageBlipsModal(this.app, this).open();
     });
-    this.addRibbonIcon("dice", "Random Blip", () => {
+    this.addRibbonIcon("dice", "Random blip", () => {
       new RandomBlipModal(this.app, this).open();
     });
     this.addCommand({
       id: "capture-blip",
-      name: "Capture a new Blip",
+      name: "Capture a new blip",
       callback: () => {
         new BlipModal(this.app, this).open();
       }
     });
     this.addCommand({
       id: "manage-blips",
-      name: "Manage Blips (view and delete)",
+      name: "Manage blips (view and delete)",
       callback: () => {
         new ManageBlipsModal(this.app, this).open();
       }
     });
     this.addCommand({
       id: "random-blip",
-      name: "Show a random Blip",
+      name: "Show a random blip",
       callback: () => {
         new RandomBlipModal(this.app, this).open();
       }
@@ -65,30 +71,31 @@ var BlipCapturePlugin = class extends import_obsidian.Plugin {
   async saveBlip(content) {
     const date = this.formatDate(new Date());
     const blipEntry = `- **${content}** ${date}`;
-    let file = this.app.vault.getAbstractFileByPath(BLIPS_FILE);
+    const file = this.app.vault.getAbstractFileByPath(BLIPS_FILE);
     if (file instanceof import_obsidian.TFile) {
       const existingContent = await this.app.vault.read(file);
+      const trimmed = existingContent.replace(/^\s+/, "");
       await this.app.vault.modify(file, `
 ${blipEntry}
-${existingContent.trimStart()}`);
+${trimmed}`);
     } else {
       await this.app.vault.create(BLIPS_FILE, `
 ${blipEntry}`);
     }
-    new import_obsidian.Notice("Blip saved!");
+    new import_obsidian.Notice("Blip saved");
   }
   async getBlips() {
     const file = this.app.vault.getAbstractFileByPath(BLIPS_FILE);
     if (!(file instanceof import_obsidian.TFile)) {
       return [];
     }
-    const content = await this.app.vault.read(file);
+    const content = await this.app.vault.cachedRead(file);
     const blips = [];
     const lines = content.split("\n").filter((line) => line.trim() !== "");
     const blipPattern = /^-\s+\*\*(.+)\*\*\s+(\d{2}\/\d{2}\/\d{2})$/;
     let index = 0;
     for (const line of lines) {
-      const match = line.match(blipPattern);
+      const match = blipPattern.exec(line);
       if (match) {
         blips.push({
           content: match[1].trim(),
@@ -106,23 +113,25 @@ ${blipEntry}`);
     }
     const blips = await this.getBlips();
     const remainingBlips = blips.filter((_, i) => i !== blipIndex);
-    const newContent = "\n" + remainingBlips.map((b) => `- **${b.content}** ${b.date}`).join("\n");
-    await this.app.vault.modify(file, newContent);
-    new import_obsidian.Notice("Blip deleted!");
+    await this.app.vault.modify(file, this.serializeBlips(remainingBlips));
+    new import_obsidian.Notice("Blip deleted");
   }
   async reorderBlips(blips) {
     const file = this.app.vault.getAbstractFileByPath(BLIPS_FILE);
     if (!(file instanceof import_obsidian.TFile)) {
       return;
     }
-    const newContent = "\n" + blips.map((b) => `- **${b.content}** ${b.date}`).join("\n");
-    await this.app.vault.modify(file, newContent);
-    new import_obsidian.Notice("Blips reordered!");
+    await this.app.vault.modify(file, this.serializeBlips(blips));
+    new import_obsidian.Notice("Blips reordered");
+  }
+  serializeBlips(blips) {
+    return `
+${blips.map(formatBlipLine).join("\n")}`;
   }
   formatDate(date) {
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const year = String(date.getFullYear()).slice(-2);
+    const month = padTwo(date.getMonth() + 1);
+    const day = padTwo(date.getDate());
+    const year = `${date.getFullYear()}`.slice(-2);
     return `${month}/${day}/${year}`;
   }
 };
@@ -134,7 +143,7 @@ var BlipModal = class extends import_obsidian.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.addClass("blip-modal");
-    contentEl.createEl("h3", { text: "Capture Blip", cls: "blip-title" });
+    contentEl.createEl("h3", { text: "Capture blip", cls: "blip-title" });
     this.textArea = contentEl.createEl("textarea", {
       cls: "blip-textarea",
       attr: {
@@ -147,16 +156,20 @@ var BlipModal = class extends import_obsidian.Modal {
       text: "Cancel",
       cls: "blip-button blip-cancel"
     });
-    cancelButton.addEventListener("click", () => this.close());
+    cancelButton.addEventListener("click", () => {
+      this.close();
+    });
     const saveButton = buttonContainer.createEl("button", {
       text: "Save",
       cls: "blip-button blip-save"
     });
-    saveButton.addEventListener("click", () => this.saveBlip());
+    saveButton.addEventListener("click", () => {
+      void this.saveBlip();
+    });
     this.textArea.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        this.saveBlip();
+        void this.saveBlip();
       }
       if (e.key === "Escape") {
         this.close();
@@ -174,8 +187,7 @@ var BlipModal = class extends import_obsidian.Modal {
     this.close();
   }
   onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
+    this.contentEl.empty();
   }
 };
 var ManageBlipsModal = class extends import_obsidian.Modal {
@@ -186,23 +198,25 @@ var ManageBlipsModal = class extends import_obsidian.Modal {
     this.draggedIndex = -1;
     this.plugin = plugin;
   }
-  async onOpen() {
+  onOpen() {
     const { contentEl } = this;
     contentEl.addClass("blip-modal");
     contentEl.addClass("blip-manage-modal");
-    contentEl.createEl("h3", { text: "Manage Blips", cls: "blip-title" });
+    contentEl.createEl("h3", { text: "Manage blips", cls: "blip-title" });
     contentEl.createEl("p", {
       text: "Drag to reorder \u2022 Click \xD7 to delete",
       cls: "blip-instructions"
     });
     this.blipsContainer = contentEl.createDiv({ cls: "blips-list-container" });
-    await this.renderBlips();
     const buttonContainer = contentEl.createDiv({ cls: "blip-button-container" });
     const closeButton = buttonContainer.createEl("button", {
       text: "Close",
       cls: "blip-button blip-cancel"
     });
-    closeButton.addEventListener("click", () => this.close());
+    closeButton.addEventListener("click", () => {
+      this.close();
+    });
+    void this.renderBlips();
   }
   async renderBlips() {
     this.blipsContainer.empty();
@@ -220,13 +234,13 @@ var ManageBlipsModal = class extends import_obsidian.Modal {
       blipItem.setAttribute("draggable", "true");
       blipItem.dataset.index = String(i);
       const dragHandle = blipItem.createDiv({ cls: "blip-drag-handle" });
-      dragHandle.innerHTML = "\u22EE\u22EE";
+      dragHandle.setText("\u22EE\u22EE");
       const blipContent = blipItem.createDiv({ cls: "blip-item-content" });
-      blipContent.createEl("div", {
-        text: blip.content.length > 80 ? blip.content.substring(0, 80) + "..." : blip.content,
+      blipContent.createDiv({
+        text: blip.content.length > 80 ? `${blip.content.substring(0, 80)}...` : blip.content,
         cls: "blip-item-text"
       });
-      blipContent.createEl("div", {
+      blipContent.createDiv({
         text: blip.date,
         cls: "blip-item-date"
       });
@@ -235,18 +249,33 @@ var ManageBlipsModal = class extends import_obsidian.Modal {
         cls: "blip-delete-button",
         attr: { "aria-label": "Delete blip" }
       });
-      deleteButton.addEventListener("click", async (e) => {
+      deleteButton.addEventListener("click", (e) => {
         e.stopPropagation();
-        await this.plugin.deleteBlip(i);
-        await this.renderBlips();
+        void this.removeBlip(i);
       });
-      blipItem.addEventListener("dragstart", (e) => this.handleDragStart(e, i));
-      blipItem.addEventListener("dragend", (e) => this.handleDragEnd(e));
-      blipItem.addEventListener("dragover", (e) => this.handleDragOver(e));
-      blipItem.addEventListener("drop", (e) => this.handleDrop(e, i));
-      blipItem.addEventListener("dragenter", (e) => this.handleDragEnter(e));
-      blipItem.addEventListener("dragleave", (e) => this.handleDragLeave(e));
+      blipItem.addEventListener("dragstart", (e) => {
+        this.handleDragStart(e, i);
+      });
+      blipItem.addEventListener("dragend", () => {
+        this.handleDragEnd();
+      });
+      blipItem.addEventListener("dragover", (e) => {
+        this.handleDragOver(e);
+      });
+      blipItem.addEventListener("drop", (e) => {
+        void this.handleDrop(e, i);
+      });
+      blipItem.addEventListener("dragenter", (e) => {
+        this.handleDragEnter(e);
+      });
+      blipItem.addEventListener("dragleave", (e) => {
+        this.handleDragLeave(e);
+      });
     }
+  }
+  async removeBlip(index) {
+    await this.plugin.deleteBlip(index);
+    await this.renderBlips();
   }
   handleDragStart(e, index) {
     this.draggedIndex = index;
@@ -257,7 +286,7 @@ var ManageBlipsModal = class extends import_obsidian.Modal {
       e.dataTransfer.setData("text/plain", String(index));
     }
   }
-  handleDragEnd(e) {
+  handleDragEnd() {
     if (this.draggedItem) {
       this.draggedItem.removeClass("blip-dragging");
     }
@@ -298,8 +327,7 @@ var ManageBlipsModal = class extends import_obsidian.Modal {
     await this.renderBlips();
   }
   onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
+    this.contentEl.empty();
   }
 };
 var RandomBlipModal = class extends import_obsidian.Modal {
@@ -308,25 +336,32 @@ var RandomBlipModal = class extends import_obsidian.Modal {
     this.blips = [];
     this.plugin = plugin;
   }
-  async onOpen() {
+  onOpen() {
     const { contentEl } = this;
     contentEl.addClass("blip-modal");
     contentEl.addClass("blip-random-modal");
-    contentEl.createEl("h3", { text: "Random Blip", cls: "blip-title" });
+    contentEl.createEl("h3", { text: "Random blip", cls: "blip-title" });
     this.blipDisplay = contentEl.createDiv({ cls: "random-blip-display" });
-    this.blips = await this.plugin.getBlips();
-    this.showRandomBlip();
     const buttonContainer = contentEl.createDiv({ cls: "blip-button-container" });
     const anotherButton = buttonContainer.createEl("button", {
       text: "Another",
       cls: "blip-button blip-save"
     });
-    anotherButton.addEventListener("click", () => this.showRandomBlip());
+    anotherButton.addEventListener("click", () => {
+      this.showRandomBlip();
+    });
     const closeButton = buttonContainer.createEl("button", {
       text: "Close",
       cls: "blip-button blip-cancel"
     });
-    closeButton.addEventListener("click", () => this.close());
+    closeButton.addEventListener("click", () => {
+      this.close();
+    });
+    void this.loadBlips();
+  }
+  async loadBlips() {
+    this.blips = await this.plugin.getBlips();
+    this.showRandomBlip();
   }
   showRandomBlip() {
     this.blipDisplay.empty();
@@ -339,17 +374,16 @@ var RandomBlipModal = class extends import_obsidian.Modal {
     }
     const randomIndex = Math.floor(Math.random() * this.blips.length);
     const blip = this.blips[randomIndex];
-    this.blipDisplay.createEl("div", {
+    this.blipDisplay.createDiv({
       text: blip.content,
       cls: "random-blip-content"
     });
-    this.blipDisplay.createEl("div", {
+    this.blipDisplay.createDiv({
       text: blip.date,
       cls: "random-blip-date"
     });
   }
   onClose() {
-    const { contentEl } = this;
-    contentEl.empty();
+    this.contentEl.empty();
   }
 };

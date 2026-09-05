@@ -2,6 +2,8 @@
 
 Quickly capture short notes ("Blips") and save them to a central `Blips.md` file in your vault's root directory. Perfect for capturing fleeting thoughts, ideas, and quick notes without interrupting your workflow.
 
+![Blip Capture window](blipfullsize.jpg)
+
 ## Features
 
 - **Capture Blips**: Quickly jot down thoughts, ideas, or notes via a popup modal
